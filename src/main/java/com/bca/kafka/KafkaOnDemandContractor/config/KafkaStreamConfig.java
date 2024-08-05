@@ -33,4 +33,23 @@ public class KafkaStreamConfig {
         props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, JsonSerde.class.getName());
         return new KafkaStreamsConfiguration(props);
     }
+    @Bean
+    public KStream<String, UserCreatedEvent> kStream(StreamsBuilder streamsBuilder) {
+        KStream<String, UserCreatedEvent> sourceStream = streamsBuilder.stream("user-position",
+                Consumed.with(Serdes.String(), new JsonSerde<>(UserCreatedEvent.class)));
+
+        KStream<String, String> rateStream = sourceStream.mapValues(value -> {
+            // Perform rate calculation based on user position
+            return calculateRate(value);
+        });
+
+        rateStream.to("construction-rate", Produced.with(Serdes.String(), Serdes.String()));
+
+        return sourceStream;
+    }
+
+    private String calculateRate(UserCreatedEvent userPosition) {
+        // Dummy rate calculation logic
+        return "rate-calculation";
+    }
 }
