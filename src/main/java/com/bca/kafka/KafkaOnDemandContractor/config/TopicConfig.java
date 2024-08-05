@@ -19,11 +19,11 @@ public class TopicConfig {
         return new KafkaAdmin.NewTopics(
                 TopicBuilder.name("user-position")
                         .replicas(1) // setting replica to 1 because we have only 1 broker
-                        .partitions(10)
+                        .partitions(1)
                         .build(),
                 TopicBuilder.name("constructors-position-and-rate")
                         .replicas(1)
-                        .partitions(10)
+                        .partitions(1)
                         .build());
     }
 }

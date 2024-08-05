@@ -43,7 +43,7 @@ public class KafkaStreamConfig {
             return calculateRate(value);
         });
 
-        rateStream.to("construction-rate", Produced.with(Serdes.String(), Serdes.String()));
+        rateStream.to("constructors-position-and-rate", Produced.with(Serdes.String(), Serdes.String()));
 
         return sourceStream;
     }
