@@ -13,13 +13,13 @@ import java.util.logging.Logger;
 
 @Service
 @AllArgsConstructor
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl implements  UserService {
 
     private final KafkaTemplate<String,UserCreatedEvent> kafkaTemplate;
     private final Logger LOGGER = Logger.getLogger(UserServiceImpl.class.getName());
 
     @Override
-    public String createUser(UserRequestDto userRequestDto) throws Exception{
+    public UserCreatedEvent createUser(UserRequestDto userRequestDto) throws Exception{
         UserCreatedEvent userCreatedEvent = new UserCreatedEvent(userRequestDto.getUsername(),
                 userRequestDto.getType(), userRequestDto.getLongitude(), userRequestDto.getLatitude());
 
@@ -37,7 +37,7 @@ public class UserServiceImpl implements UserService {
         LOGGER.info("Timestamp " + result.getRecordMetadata().timestamp());
         LOGGER.info("After Sending User to kafka");
 
-        return  "Username:" + userCreatedEvent.getUsername() + " created succesfully";
+        return  userCreatedEvent;
     }
 
     private void sendMessageWithAsync(UserCreatedEvent userCreatedEvent) {
@@ -57,4 +57,5 @@ public class UserServiceImpl implements UserService {
         future.join();// wait until the message is sent to the server same like await in javascript
         LOGGER.info("Return user  successfully");
     }
+
 }
