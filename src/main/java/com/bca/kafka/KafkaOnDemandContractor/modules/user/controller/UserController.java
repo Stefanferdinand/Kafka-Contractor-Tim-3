@@ -1,5 +1,6 @@
 package com.bca.kafka.KafkaOnDemandContractor.modules.user.controller;
 
+import com.bca.kafka.KafkaOnDemandContractor.modules.user.dto.UserCreatedEvent;
 import com.bca.kafka.KafkaOnDemandContractor.modules.user.dto.UserRequestDto;
 import com.bca.kafka.KafkaOnDemandContractor.modules.user.service.UserService;
 import lombok.AllArgsConstructor;
@@ -21,17 +22,17 @@ public class UserController {
 
         private final UserService userService;
         private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
-
         @PostMapping
         public ResponseEntity<Object>createUsers(@RequestBody UserRequestDto userRequestDto) {
-            String userName;
+            UserCreatedEvent createdUser;
             try {
-                userName = userService.createUser(userRequestDto);
+                //produce
+                createdUser = userService.createUser(userRequestDto);
             } catch (Exception e) {
                 LOGGER.error(e.getMessage(),e);
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorMessage(new Date(), e.getMessage(), "/users"));
             }
 
-            return ResponseEntity.ok(userName);
+            return ResponseEntity.ok(createdUser);
         }
 }
