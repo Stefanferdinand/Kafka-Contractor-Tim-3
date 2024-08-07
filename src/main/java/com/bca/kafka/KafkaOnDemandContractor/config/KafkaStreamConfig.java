@@ -56,12 +56,7 @@ public class KafkaStreamConfig {
 
         KTable<String, Long> kTable = stream.selectKey((k,v) -> {
             currentUserType = v.getType();
-            if(v.getType().equalsIgnoreCase("contractor")){
-                return calculateArea(v);
-            }
-            else{
-                return "CUSTOMER";
-            }
+            return calculateArea(v);
         })
         .groupByKey()
         .count(Named.as("StreamTable"));
@@ -84,6 +79,7 @@ public class KafkaStreamConfig {
     }
 
     private Double calculatePrice(Long v){
+//        10000 - (10000 * (2/100))
         return basePrice - (basePrice * (v.doubleValue()/100.00));
     }
 
