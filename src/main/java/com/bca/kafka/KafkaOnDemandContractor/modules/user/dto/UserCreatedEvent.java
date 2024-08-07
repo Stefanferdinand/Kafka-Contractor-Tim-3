@@ -18,5 +18,5 @@ public class UserCreatedEvent {
     private String type;
     private double longitude;
     private double latitude;
-
 }
+
