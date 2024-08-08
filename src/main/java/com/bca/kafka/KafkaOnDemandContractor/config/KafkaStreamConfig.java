@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 @Configuration
 @EnableKafkaStreams
@@ -43,7 +44,6 @@ public class KafkaStreamConfig {
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
         props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
         props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, serde.getClass().getName());
-        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         return new KafkaStreamsConfiguration(props);
     }
 
@@ -54,33 +54,49 @@ public class KafkaStreamConfig {
                 serde
         ));
 
-        KTable<String, Long> kTable = stream.selectKey((k,v) -> {
+        System.out.println("Start Calculating");
+        KTable<String,Long>kCountContractorTable= stream.filter(
+                        (k,v)->v.getType().equalsIgnoreCase("contractor"))
+                .selectKey((k,v) -> {
+                    currentUserType = v.getType();
+                    return calculateArea(v);
+                }).groupByKey().count();
+
+        KTable<String,Long>kCountCustomerTable = stream.filter(
+                (k,v)->v.getType().equalsIgnoreCase("customer"))
+                .selectKey((k,v) -> {
             currentUserType = v.getType();
             return calculateArea(v);
-        })
-        .groupByKey()
-        .count(Named.as("StreamTable"));
+        }).groupByKey().count();
+        KTable<String, Double> joinedTable = kCountContractorTable.join(
+                kCountCustomerTable,
+                (contractorCount, customerCount) -> calculatePrice(customerCount, contractorCount));
 
-        KStream<String, Double> priceStream = kTable.toStream()
-                .peek((k,v) -> {
-                    System.out.println("PEEK KEY: " + k);
-                    System.out.println("PEEK VALUE: " + v);
-                })
-                .mapValues((k,v) -> {
-                    if(currentUserType.equalsIgnoreCase("customer")){
-                        return calculatePrice(v);
-                    }
-                    return 0.00;
-                });
+        joinedTable.toStream().to("contractor-position-and-rate");
+        joinedTable.toStream().peek((k,v) -> {
+            System.out.println("JOIN KEY: " + k);
+            System.out.println("JOIN VALUE: " + v);
+        }).toTable();
 
-        priceStream.to("contractor-position-and-rate");
+        System.out.println("KTABLE COUNT CONTRACTOR: " + kCountContractorTable);
+        kCountCustomerTable.toStream().foreach((k,v) -> {
+            System.out.println("CUSTOMER AREA: " + k);
+            System.out.println("CUSTOMER COUNT: " + v);
+        });
+        kCountContractorTable.toStream().foreach((k,v) -> {
+            System.out.println("CONTRACTOR AREA: " + k);
+            System.out.println("CONTRACTOR COUNT: " + v);
+        });
 
-        return priceStream;
+        System.out.println("Finish Calculating");
+
+
+        return null;
     }
 
-    private Double calculatePrice(Long v){
+    private Double calculatePrice(Long customer, Long contractor){
 //        10000 - (10000 * (2/100))
-        return basePrice - (basePrice * (v.doubleValue()/100.00));
+        return basePrice - (basePrice * (customer.doubleValue()/contractor.doubleValue()));
     }
 
     private String calculateArea(UserCreatedEvent v) {
