@@ -96,7 +96,19 @@ public class KafkaStreamConfig {
 
     private Double calculatePrice(Long customer, Long contractor){
 //        10000 - (10000 * (2/100))
-        return basePrice - (basePrice * (customer.doubleValue()/contractor.doubleValue()));
+        Double sensitivity = 0.02;
+        System.out.println("CUSTOMER: " + customer.doubleValue());
+        System.out.println("CONTRACTOR: " + contractor.doubleValue());
+        Double total = basePrice *(1.0+ sensitivity.doubleValue() * ((customer.doubleValue()/contractor.doubleValue())-1.0));
+        System.out.println("Real Contractor Rate " + total);
+        if(total<basePrice)
+        {
+            return basePrice;
+        }
+        else{
+            return total;
+        }
+
     }
 
     private String calculateArea(UserCreatedEvent v) {
