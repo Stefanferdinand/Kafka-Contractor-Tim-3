@@ -40,7 +40,7 @@ public class KafkaStreamConfig {
     @Bean(name = KafkaStreamsDefaultConfiguration.DEFAULT_STREAMS_CONFIG_BEAN_NAME)
     public KafkaStreamsConfiguration defaultKafkaStreamsConfig() {
         Map<String, Object> props = new HashMap<>();
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "kafka-stream-construction-rate");
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "kafka-stream-construction-rate-5");
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
         props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
         props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, serde.getClass().getName());
@@ -96,7 +96,19 @@ public class KafkaStreamConfig {
 
     private Double calculatePrice(Long customer, Long contractor){
 //        10000 - (10000 * (2/100))
-        return basePrice - (basePrice * (customer.doubleValue()/contractor.doubleValue()));
+        Double sensitivity = 0.02;
+        System.out.println("CUSTOMER: " + customer.doubleValue());
+        System.out.println("CONTRACTOR: " + contractor.doubleValue());
+        Double total = basePrice *(1.0+ sensitivity.doubleValue() * ((customer.doubleValue()/contractor.doubleValue())-1.0));
+        System.out.println("Real Contractor Rate " + total);
+        if(total<basePrice)
+        {
+            return basePrice;
+        }
+        else{
+            return total;
+        }
+
     }
 
     private String calculateArea(UserCreatedEvent v) {
