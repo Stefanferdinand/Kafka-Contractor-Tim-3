@@ -8,6 +8,6 @@ public class KafkaConsumer {
 
     @KafkaListener(topics = "contractor-position-and-rate", groupId = "CG_CONTRACTTOR_USER_RATE")
     public void consume(String message) {
-        System.out.println("Analytic Constructor Rate : " + message);
+        System.out.println("Analytic Contractor Rate : " + message);
     }
 }
