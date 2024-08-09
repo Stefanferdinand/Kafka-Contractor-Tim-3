@@ -54,7 +54,6 @@ public class KafkaStreamConfig {
                 serde
         ));
 
-        System.out.println("Start Calculating");
         KTable<String,Long>kCountContractorTable= stream.filter(
                         (k,v)->v.getType().equalsIgnoreCase("contractor"))
                 .selectKey((k,v) -> {
@@ -73,10 +72,7 @@ public class KafkaStreamConfig {
                 (contractorCount, customerCount) -> calculatePrice(customerCount, contractorCount));
 
         joinedTable.toStream().to("contractor-position-and-rate");
-        joinedTable.toStream().peek((k,v) -> {
-            System.out.println("JOIN KEY: " + k);
-            System.out.println("JOIN VALUE: " + v);
-        }).toTable();
+
 
         System.out.println("KTABLE COUNT CONTRACTOR: " + kCountContractorTable);
         kCountCustomerTable.toStream().foreach((k,v) -> {
@@ -88,14 +84,10 @@ public class KafkaStreamConfig {
             System.out.println("CONTRACTOR COUNT: " + v);
         });
 
-        System.out.println("Finish Calculating");
-
-
         return null;
     }
 
     private Double calculatePrice(Long customer, Long contractor){
-//        10000 - (10000 * (2/100))
         Double sensitivity = 0.02;
         System.out.println("CUSTOMER: " + customer.doubleValue());
         System.out.println("CONTRACTOR: " + contractor.doubleValue());
